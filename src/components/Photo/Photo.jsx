@@ -1,7 +1,7 @@
 import React from "react";
 
 import { StyledPhoto } from "./style";
-import { Button } from "../Button/Button";
+import { PhotoButtonTray } from "../ButtonTray/PhotoButtonTray";
 
 export const Photo = ({ photoRef, hasPhoto, setHasPhoto }) => {
   const closePhoto = () => {
@@ -15,7 +15,7 @@ export const Photo = ({ photoRef, hasPhoto, setHasPhoto }) => {
   return (
     <StyledPhoto visible={hasPhoto}>
       <canvas ref={photoRef}></canvas>
-      <Button action={closePhoto} content={"Close"} />
+      <PhotoButtonTray closeAction={closePhoto} />
     </StyledPhoto>
   );
 };

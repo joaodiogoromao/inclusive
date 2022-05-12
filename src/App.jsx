@@ -14,7 +14,6 @@ function App() {
       <Camera
         videoRef={videoRef}
         photoRef={photoRef}
-        hasPhoto={hasPhoto}
         setHasPhoto={setHasPhoto}
       />
       <Photo photoRef={photoRef} hasPhoto={hasPhoto} setHasPhoto={setHasPhoto} />

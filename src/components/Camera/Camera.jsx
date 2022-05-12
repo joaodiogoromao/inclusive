@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 
 import { StyledCamera } from "./style";
-import { Button } from "../Button/Button";
+import { CameraButtonTray } from "../ButtonTray/CameraButtonTray";
 
-export const Camera = ({ videoRef, photoRef, hasPhoto, setHasPhoto }) => {
+export const Camera = ({ videoRef, photoRef, setHasPhoto }) => {
   useEffect(() => {
     getVideo();
   }, [videoRef]);
@@ -44,7 +44,7 @@ export const Camera = ({ videoRef, photoRef, hasPhoto, setHasPhoto }) => {
   return (
     <StyledCamera>
       <video ref={videoRef}></video>
-      <Button action={takePhoto} content={"SNAP"} />
+      <CameraButtonTray photoAction={takePhoto} videoAction={takePhoto} />
     </StyledCamera>
   );
 };
