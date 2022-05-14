@@ -1,17 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { StyledCamera } from "./style";
 import { CameraButtonTray } from "../ButtonTray/CameraButtonTray";
 import { RecorderButtonTray } from "../ButtonTray/RecorderButtonTray";
 
-export const Camera = ({ videoRef, photoRef, setHasPhoto }) => {
+export const Camera = ({
+  cameraRef,
+  photoRef,
+  videoRef,
+  setHasPhoto,
+  setHasVideo,
+}) => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recording, setRecording] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState([]);
+
+  const [recording, _setRecording] = useState(false);
+  const recordingRef = useRef(recording);
+  const setRecording = (val) => {
+    recordingRef.current = val;
+    _setRecording(val);
+  };
 
   useEffect(() => {
     getVideo();
-  }, [videoRef]);
+  }, [cameraRef]);
 
   useEffect(() => {
     if (mediaRecorder) triggerRecording();
@@ -29,8 +41,7 @@ export const Camera = ({ videoRef, photoRef, setHasPhoto }) => {
   const getVideo = () => {
     getStream()
       .then((stream) => {
-        console.log(stream);
-        let video = videoRef.current;
+        let video = cameraRef.current;
         video.srcObject = stream;
         video.play();
       })
@@ -43,7 +54,7 @@ export const Camera = ({ videoRef, photoRef, setHasPhoto }) => {
     const width = 1280;
     const height = width / (16 / 9);
 
-    let video = videoRef.current;
+    let video = cameraRef.current;
     let photo = photoRef.current;
     let ctx = photo.getContext("2d");
 
@@ -63,8 +74,9 @@ export const Camera = ({ videoRef, photoRef, setHasPhoto }) => {
 
   const triggerRecording = () => {
     mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0)
-        setRecordedChunks((recordedChunks) => [...recordedChunks, event.data]);
+      if (event.data.size > 0 && recordingRef.current) {
+        setRecordedChunks((recorded) => [...recorded, event.data]);
+      }
     };
     mediaRecorder.start(10);
     setRecording(true);
@@ -72,17 +84,34 @@ export const Camera = ({ videoRef, photoRef, setHasPhoto }) => {
 
   const stopRecording = () => {
     mediaRecorder.stop();
+
+    let buffer = new Blob(recordedChunks);
+    videoRef.current = URL.createObjectURL(buffer);
+    setHasVideo(true);
+  };
+
+  const closeRecording = () => {
+    setRecording(false);
+    setRecordedChunks([]);
+  };
+
+  const download = () => {
+    let url = videoRef.current;
+    let a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    a.href = url;
+    a.download = "test.webm";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
     <StyledCamera>
-      <video ref={videoRef}></video>
-      {recording ? (
+      <video ref={cameraRef}></video>
+      {recordingRef.current ? (
         <RecorderButtonTray
-          pauseAction={() => {
-            console.log(recordedChunks);
-          }}
-          closeAction={() => {}}
+          closeAction={closeRecording}
           stopAction={stopRecording}
         />
       ) : (
