@@ -3,7 +3,6 @@ import React, { useRef, useState } from "react";
 import { Camera } from "./components/Camera/Camera";
 import { Photo } from "./components/Photo/Photo";
 import { Video } from "./components/Video/Video";
-import PaintMenu from "./PaintMenu";
 
 function App() {
   const cameraRef = useRef(null);
@@ -15,7 +14,6 @@ function App() {
 
   return (
     <div className="App">
-      <PaintMenu/>
       <Camera
         cameraRef={cameraRef}
         photoRef={photoRef}

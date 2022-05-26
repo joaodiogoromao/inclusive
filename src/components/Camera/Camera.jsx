@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { StyledCamera } from "./style";
 import { CameraButtonTray } from "../ButtonTray/CameraButtonTray";
 import { RecorderButtonTray } from "../ButtonTray/RecorderButtonTray";
+import { Paint } from "../Paint/Paint";
 
 export const Camera = ({
   cameraRef,
@@ -21,13 +22,36 @@ export const Camera = ({
     _setRecording(val);
   };
 
-  useEffect(() => {
-    getVideo();
-  }, [cameraRef]);
+  const [drawing, setDrawing] = useState(false);
+
+  const drawingRef = useRef(null);
 
   useEffect(() => {
+    const getVideo = () => {
+      getStream()
+        .then((stream) => {
+          let video = cameraRef.current;
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+
+    const triggerRecording = () => {
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0 && recordingRef.current) {
+          setRecordedChunks((recorded) => [...recorded, event.data]);
+        }
+      };
+      mediaRecorder.start(10);
+      setRecording(true);
+    };
+
+    getVideo();
     if (mediaRecorder) triggerRecording();
-  }, [mediaRecorder]);
+  }, [cameraRef, mediaRecorder]);
 
   const getStream = () => {
     return navigator.mediaDevices.getUserMedia({
@@ -36,18 +60,6 @@ export const Camera = ({
         height: 1080,
       },
     });
-  };
-
-  const getVideo = () => {
-    getStream()
-      .then((stream) => {
-        let video = cameraRef.current;
-        video.srcObject = stream;
-        video.play();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   };
 
   const takePhoto = () => {
@@ -70,16 +82,6 @@ export const Camera = ({
     getStream().then((stream) => {
       setMediaRecorder(new MediaRecorder(stream, options));
     });
-  };
-
-  const triggerRecording = () => {
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0 && recordingRef.current) {
-        setRecordedChunks((recorded) => [...recorded, event.data]);
-      }
-    };
-    mediaRecorder.start(10);
-    setRecording(true);
   };
 
   const stopRecording = () => {
@@ -106,18 +108,31 @@ export const Camera = ({
     URL.revokeObjectURL(url);
   };
 
+  const clearDrawing = () => {
+    const canvas = drawingRef.current;
+    const context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
   return (
     <StyledCamera>
-      <video ref={cameraRef}></video>
+      <video ref={cameraRef} style={{ position: "absolute" }}></video>
+      <Paint drawing={drawing} canvasRef={drawingRef} />
       {recordingRef.current ? (
         <RecorderButtonTray
           closeAction={closeRecording}
           stopAction={stopRecording}
+          drawing={drawing}
+          setDrawing={setDrawing}
+          clearDrawing={clearDrawing}
         />
       ) : (
         <CameraButtonTray
           photoAction={takePhoto}
           videoAction={startRecording}
+          drawing={drawing}
+          setDrawing={setDrawing}
+          clearDrawing={clearDrawing}
         />
       )}
     </StyledCamera>
