@@ -23,16 +23,30 @@ export const Camera = ({
   };
 
   const [drawing, setDrawing] = useState(false);
-
   const drawingRef = useRef(null);
+
+  const videoCanvasRef = useRef(null);
+
+  const drawOnVideoCanvas = () => {
+    const width = 1280;
+    const height = width / (16 / 9);
+
+    const ctx = videoCanvasRef.current.getContext("2d");
+    ctx.drawImage(cameraRef.current, 0, 0, width, height);
+    ctx.drawImage(drawingRef.current, 0, 0, width, height);
+  };
 
   useEffect(() => {
     const getVideo = () => {
-      getStream()
+      getCameraStream()
         .then((stream) => {
           let video = cameraRef.current;
           video.srcObject = stream;
           video.play();
+
+          video.addEventListener("play", () => {
+            setInterval(drawOnVideoCanvas, 10);
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -53,7 +67,7 @@ export const Camera = ({
     if (mediaRecorder) triggerRecording();
   }, [cameraRef, mediaRecorder]);
 
-  const getStream = () => {
+  const getCameraStream = () => {
     return navigator.mediaDevices.getUserMedia({
       video: {
         width: 1920,
@@ -74,14 +88,24 @@ export const Camera = ({
     photo.height = height;
 
     ctx.drawImage(video, 0, 0, width, height);
+    const drawingCanvas = drawingRef.current;
+    ctx.drawImage(drawingCanvas, 0, 0, width, height);
+
     setHasPhoto(true);
   };
 
   const startRecording = () => {
     const options = { mimeType: "video/webm;codecs=vp9" };
-    getStream().then((stream) => {
-      setMediaRecorder(new MediaRecorder(stream, options));
+    // getCameraStream().then((stream) => {
+
+    const stream = videoCanvasRef.current.captureStream(50);
+    setMediaRecorder(new MediaRecorder(stream, options));
+
+    const video = cameraRef.current;
+    video.addEventListener("play", () => {
+      setInterval(drawOnVideoCanvas, 20, video);
     });
+    // });
   };
 
   const stopRecording = () => {
@@ -116,7 +140,8 @@ export const Camera = ({
 
   return (
     <StyledCamera>
-      <video ref={cameraRef} style={{ position: "absolute" }}></video>
+      <video ref={cameraRef} style={{ display: "none" }}></video>
+      <canvas ref={videoCanvasRef} style={{ position: "absolute" }} width={`1280px`} height={`720px`}></canvas>
       <Paint drawing={drawing} canvasRef={drawingRef} />
       {recordingRef.current ? (
         <RecorderButtonTray
