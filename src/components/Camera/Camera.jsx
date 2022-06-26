@@ -24,8 +24,9 @@ export const Camera = ({
   };
 
   const [drawing, setDrawing] = useState(false);
-  const drawingRef = useRef(null);
+  const [mode, setMode] = useState("camera"); // possible modes: camera, whiteBoard, screen
 
+  const drawingRef = useRef(null);
   const videoCanvasRef = useRef(null);
 
   const drawOnVideoCanvas = () => {
@@ -97,8 +98,6 @@ export const Camera = ({
 
   const startRecording = () => {
     const options = { mimeType: "video/webm;codecs=vp9" };
-    // getCameraStream().then((stream) => {
-
     const stream = videoCanvasRef.current.captureStream(50);
     setMediaRecorder(new MediaRecorder(stream, options));
 
@@ -106,7 +105,6 @@ export const Camera = ({
     video.addEventListener("play", () => {
       setInterval(drawOnVideoCanvas, 20, video);
     });
-    // });
   };
 
   const stopRecording = () => {
@@ -122,7 +120,7 @@ export const Camera = ({
     setRecordedChunks([]);
   };
 
-  const download = () => {
+  const downloadVideo = () => {
     let url = videoRef.current;
     let a = document.createElement("a");
     document.body.appendChild(a);
@@ -166,7 +164,10 @@ export const Camera = ({
             setDrawing={setDrawing}
             clearDrawing={clearDrawing}
           />
-          <ModeSelectionButtonTray></ModeSelectionButtonTray>
+          <ModeSelectionButtonTray
+            mode={mode}
+            setMode={setMode}
+          ></ModeSelectionButtonTray>
         </>
       )}
     </StyledCamera>
