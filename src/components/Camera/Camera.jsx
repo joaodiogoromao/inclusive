@@ -4,6 +4,7 @@ import { StyledCamera } from "./style";
 import { CameraButtonTray } from "../ButtonTray/CameraButtonTray";
 import { RecorderButtonTray } from "../ButtonTray/RecorderButtonTray";
 import { Paint } from "../Paint/Paint";
+import { ModeSelectionButtonTray } from "../ButtonTray/ModeSelectionButtonTray";
 
 export const Camera = ({
   cameraRef,
@@ -141,7 +142,12 @@ export const Camera = ({
   return (
     <StyledCamera>
       <video ref={cameraRef} style={{ display: "none" }}></video>
-      <canvas ref={videoCanvasRef} style={{ position: "absolute" }} width={`1280px`} height={`720px`}></canvas>
+      <canvas
+        ref={videoCanvasRef}
+        style={{ position: "absolute" }}
+        width={`1280px`}
+        height={`720px`}
+      ></canvas>
       <Paint drawing={drawing} canvasRef={drawingRef} />
       {recordingRef.current ? (
         <RecorderButtonTray
@@ -152,13 +158,16 @@ export const Camera = ({
           clearDrawing={clearDrawing}
         />
       ) : (
-        <CameraButtonTray
-          photoAction={takePhoto}
-          videoAction={startRecording}
-          drawing={drawing}
-          setDrawing={setDrawing}
-          clearDrawing={clearDrawing}
-        />
+        <>
+          <CameraButtonTray
+            photoAction={takePhoto}
+            videoAction={startRecording}
+            drawing={drawing}
+            setDrawing={setDrawing}
+            clearDrawing={clearDrawing}
+          />
+          <ModeSelectionButtonTray></ModeSelectionButtonTray>
+        </>
       )}
     </StyledCamera>
   );

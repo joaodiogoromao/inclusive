@@ -24,3 +24,22 @@ export const StyledButton = styled.button`
   display: flex;
   align-items: center;
 `;
+
+export const StyledFilledButton = styled.button`
+  appearance: none;
+  border: #faa41a solid 2px;
+  border-radius: 25px;
+  outline: none;
+
+  padding: 12px 12px;
+  background-color: #faa41a;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 200;
+  transition: 0.4s;
+
+  margin-right: 10px;
+
+  display: flex;
+  align-items: center;
+`;

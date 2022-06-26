@@ -2,17 +2,9 @@ import React from "react";
 
 import { Button } from "../Button/Button";
 
-import {
-  BsPencil,
-  BsPencilFill,
-  BsEraserFill
-} from "react-icons/bs";
+import { BsPencilFill, BsEraserFill } from "react-icons/bs";
 
-export const DrawingButtonTray = ({
-  drawing,
-  setDrawing,
-  clearDrawing,
-}) => {
+export const DrawingButtonTray = ({ drawing, setDrawing, clearDrawing }) => {
   return (
     <>
       {drawing ? (
@@ -20,11 +12,15 @@ export const DrawingButtonTray = ({
           <Button
             action={() => setDrawing(false)}
             content={<BsPencilFill />}
+            filled={true}
           ></Button>
           <Button action={clearDrawing} content={<BsEraserFill />}></Button>
         </>
       ) : (
-        <Button action={() => setDrawing(true)} content={<BsPencil />}></Button>
+        <Button
+          action={() => setDrawing(true)}
+          content={<BsPencilFill />}
+        ></Button>
       )}
     </>
   );

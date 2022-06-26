@@ -7,3 +7,11 @@ export const StyledButtonTray = styled.div`
 
   display: flex;
 `;
+
+export const StyledModeSelection = styled.div`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+
+  display: flex;
+`;

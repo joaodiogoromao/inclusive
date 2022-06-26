@@ -4,7 +4,8 @@ import { Button } from "../Button/Button";
 import { DrawingButtonTray } from "./DrawingButtonTray";
 import { StyledButtonTray } from "./style";
 
-import { IoStop, IoClose } from "react-icons/io5";
+import { IoStop } from "react-icons/io5";
+import { BsXLg } from "react-icons/bs";
 
 export const RecorderButtonTray = ({
   stopAction,
@@ -21,7 +22,7 @@ export const RecorderButtonTray = ({
         setDrawing={setDrawing}
         clearDrawing={clearDrawing}
       ></DrawingButtonTray>
-      <Button action={closeAction} content={<IoClose />}></Button>
+      <Button action={closeAction} content={<BsXLg />}></Button>
     </StyledButtonTray>
   );
 };
