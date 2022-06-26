@@ -149,9 +149,27 @@ export const Camera = ({
   };
 
   const startRecording = () => {
-    const options = { mimeType: "video/webm;codecs=vp9" };
+    const options = { mimeType: "video/webm;codecs=vp9", audio: true };
     const stream = videoCanvasRef.current.captureStream(50);
-    setMediaRecorder(new MediaRecorder(stream, options));
+
+    const audioStreamOptions = {
+      mimeType: "video/webm;codecs=vp9",
+      audio: {
+        deviceId: "",
+      },
+    };
+
+    const audioStreamPromise =
+      navigator.mediaDevices.getUserMedia(audioStreamOptions);
+
+    audioStreamPromise.then((audioStream) => {
+      for (const track of audioStream.getTracks()) {
+        console.log("adding audio track");
+        stream.addTrack(track);
+      }
+
+      setMediaRecorder(new MediaRecorder(stream, options));
+    });
   };
 
   const stopRecording = () => {
