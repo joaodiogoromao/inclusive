@@ -35,13 +35,19 @@ export const Camera = ({
 
     if (newMode === 1) {
       drawWhiteBackground();
-    } else {
+    } else if (newMode === 2) {
+      getScreenStream().then((stream) => {
+        let video = screenRef.current;
+        video.srcObject = stream;
+        video.play();
+      });
       clearDrawing();
     }
   };
 
   const drawingRef = useRef(null);
   const videoCanvasRef = useRef(null);
+  const screenRef = useRef(null);
 
   const drawWhiteBackground = () => {
     fillRect(videoCanvasRef.current);
@@ -62,6 +68,15 @@ export const Camera = ({
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(drawingRef.current, 0, 0, width, height);
     } else if (modeRef.current === 2) {
+      ctx.drawImage(screenRef.current, 0, 0, width, height);
+      ctx.drawImage(
+        cameraRef.current,
+        (2 / 3) * width,
+        (2 / 3) * height,
+        width / 3.5,
+        height / 3.5
+      );
+      ctx.drawImage(drawingRef.current, 0, 0, width, height);
     }
   };
 
@@ -113,6 +128,15 @@ export const Camera = ({
     });
   };
 
+  const getScreenStream = () => {
+    return navigator.mediaDevices.getDisplayMedia({
+      video: {
+        width: 1920,
+        height: 1080,
+      },
+    });
+  };
+
   const takePhoto = () => {
     let photo = photoRef.current;
     let ctx = photo.getContext("2d");
@@ -128,11 +152,6 @@ export const Camera = ({
     const options = { mimeType: "video/webm;codecs=vp9" };
     const stream = videoCanvasRef.current.captureStream(50);
     setMediaRecorder(new MediaRecorder(stream, options));
-
-    const video = cameraRef.current;
-    video.addEventListener("play", () => {
-      setInterval(drawOnVideoCanvas, 20, video);
-    });
   };
 
   const stopRecording = () => {
@@ -172,6 +191,7 @@ export const Camera = ({
   return (
     <StyledCamera>
       <video ref={cameraRef} style={{ display: "none" }}></video>
+      <video ref={screenRef} style={{ display: "none" }}></video>
       <canvas
         ref={videoCanvasRef}
         style={{ position: "absolute" }}
