@@ -8,7 +8,6 @@ import { MdScreenShare } from "react-icons/md";
 
 export const ModeSelectionButtonTray = ({ mode, setMode }) => {
   const modeSelectionItem = (targetMode, icon) => {
-    console.log(targetMode, mode)
     return mode === targetMode ? (
       <Button
         action={() => setMode(targetMode)}
@@ -22,9 +21,9 @@ export const ModeSelectionButtonTray = ({ mode, setMode }) => {
 
   return (
     <StyledModeSelection>
-      {modeSelectionItem("camera", <FaPhotoVideo />)}
-      {modeSelectionItem("whiteBoard", <FaPaintBrush />)}
-      {modeSelectionItem("screen", <MdScreenShare />)}
+      {modeSelectionItem(0, <FaPhotoVideo />)}
+      {modeSelectionItem(1, <FaPaintBrush />)}
+      {modeSelectionItem(2, <MdScreenShare />)}
     </StyledModeSelection>
   );
 };

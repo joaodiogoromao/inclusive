@@ -6,6 +6,9 @@ import { RecorderButtonTray } from "../ButtonTray/RecorderButtonTray";
 import { Paint } from "../Paint/Paint";
 import { ModeSelectionButtonTray } from "../ButtonTray/ModeSelectionButtonTray";
 
+const width = 1280;
+const height = 720;
+
 export const Camera = ({
   cameraRef,
   photoRef,
@@ -15,6 +18,7 @@ export const Camera = ({
 }) => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
+  const [drawing, setDrawing] = useState(false);
 
   const [recording, _setRecording] = useState(false);
   const recordingRef = useRef(recording);
@@ -23,19 +27,50 @@ export const Camera = ({
     _setRecording(val);
   };
 
-  const [drawing, setDrawing] = useState(false);
-  const [mode, setMode] = useState("camera"); // possible modes: camera, whiteBoard, screen
+  const [mode, _setMode] = useState(0); // possible modes: 0: camera, 1: whiteBoard, 2: screen
+  const modeRef = useRef(mode);
+  const setMode = (newMode) => {
+    modeRef.current = newMode;
+    _setMode(newMode);
+
+    if (newMode === 1) {
+      drawWhiteBackground();
+    } else {
+      clearDrawing();
+    }
+  };
 
   const drawingRef = useRef(null);
   const videoCanvasRef = useRef(null);
+
+  const drawWhiteBackground = () => {
+    fillRect(videoCanvasRef.current);
+  };
+
+  const fillRect = (canvas) => {
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const drawOnCanvas = (ctx) => {
+    if (modeRef.current === 0) {
+      ctx.drawImage(cameraRef.current, 0, 0, width, height);
+      ctx.drawImage(drawingRef.current, 0, 0, width, height);
+    } else if (modeRef.current === 1) {
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(drawingRef.current, 0, 0, width, height);
+    } else if (modeRef.current === 2) {
+    }
+  };
 
   const drawOnVideoCanvas = () => {
     const width = 1280;
     const height = width / (16 / 9);
 
     const ctx = videoCanvasRef.current.getContext("2d");
-    ctx.drawImage(cameraRef.current, 0, 0, width, height);
-    ctx.drawImage(drawingRef.current, 0, 0, width, height);
+    drawOnCanvas(ctx, width, height);
   };
 
   useEffect(() => {
@@ -79,20 +114,13 @@ export const Camera = ({
   };
 
   const takePhoto = () => {
-    const width = 1280;
-    const height = width / (16 / 9);
-
-    let video = cameraRef.current;
     let photo = photoRef.current;
     let ctx = photo.getContext("2d");
 
     photo.width = width;
     photo.height = height;
 
-    ctx.drawImage(video, 0, 0, width, height);
-    const drawingCanvas = drawingRef.current;
-    ctx.drawImage(drawingCanvas, 0, 0, width, height);
-
+    drawOnCanvas(ctx, width, height);
     setHasPhoto(true);
   };
 
@@ -132,9 +160,13 @@ export const Camera = ({
   };
 
   const clearDrawing = () => {
-    const canvas = drawingRef.current;
-    const context = canvas.getContext("2d");
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    clearRect(drawingRef.current);
+  };
+
+  const clearRect = (canvas) => {
+    const ctx = canvas.getContext("2d");
+    ctx.backgroundImage = "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
   return (
@@ -143,8 +175,8 @@ export const Camera = ({
       <canvas
         ref={videoCanvasRef}
         style={{ position: "absolute" }}
-        width={`1280px`}
-        height={`720px`}
+        width={`${width}px`}
+        height={`${height}px`}
       ></canvas>
       <Paint drawing={drawing} canvasRef={drawingRef} />
       {recordingRef.current ? (
