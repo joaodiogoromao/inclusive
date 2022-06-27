@@ -22,6 +22,13 @@ export const Camera = ({
   const [recordedChunks, setRecordedChunks] = useState([]);
   const [drawing, setDrawing] = useState(false);
 
+  const [showCornerCamera, _setShowCornerCamera] = useState(true);
+  const showCornerCameraRef = useRef(showCornerCamera);
+  const setShowCornerCamera = (val) => {
+    showCornerCameraRef.current = val;
+    _setShowCornerCamera(val);
+  };
+
   const [recording, _setRecording] = useState(false);
   const recordingRef = useRef(recording);
   const setRecording = (val) => {
@@ -83,38 +90,44 @@ export const Camera = ({
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(drawingRef.current, 0, 0, width, height);
+      if (showCornerCameraRef.current) drawCornerCamera(ctx);
     } else if (modeRef.current === 2) {
       ctx.drawImage(screenRef.current, 0, 0, width, height);
-      ctx.drawImage(
-        cameraRef.current,
-        (2 / 3) * width,
-        (2 / 3) * height,
-        width / 3.5,
-        height / 3.5
-      );
+      if (showCornerCameraRef.current) drawCornerCamera(ctx);
       ctx.drawImage(drawingRef.current, 0, 0, width, height);
     }
 
-    if (transcriptRef.current !== "" && !photo && drawSpeechRef.current) {
-      ctx.fillStyle = "white";
-      ctx.textAlign = "center";
-      ctx.font = "50px Arial";
-      // ctx.fillText(transcriptRef.current, width / 2, 50);
-      // ctx.strokeText(transcriptRef.current, width / 2, 50);
+    if (transcriptRef.current !== "" && !photo && drawSpeechRef.current)
+      drawTranscript(ctx);
+  };
 
-      let wrappedText = wrapText(
-        ctx,
-        transcriptRef.current,
-        width / 2,
-        50,
-        width,
-        60
-      );
-      wrappedText.forEach(function (item) {
-        ctx.fillText(item[0], item[1], item[2]);
-        ctx.strokeText(item[0], item[1], item[2]);
-      });
-    }
+  const drawCornerCamera = (ctx) => {
+    ctx.drawImage(
+      cameraRef.current,
+      (2 / 3) * width,
+      (2 / 3) * height,
+      width / 3.5,
+      height / 3.5
+    );
+  };
+
+  const drawTranscript = (ctx) => {
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.font = "50px Arial";
+
+    let wrappedText = wrapText(
+      ctx,
+      transcriptRef.current,
+      width / 2,
+      50,
+      width,
+      60
+    );
+    wrappedText.forEach(function (item) {
+      ctx.fillText(item[0], item[1], item[2]);
+      ctx.strokeText(item[0], item[1], item[2]);
+    });
   };
 
   const drawOnVideoCanvas = () => {
@@ -261,6 +274,9 @@ export const Camera = ({
           clearDrawing={clearDrawing}
           drawSpeech={drawSpeech}
           setDrawSpeech={setDrawSpeech}
+          mode={mode}
+          showCornerCamera={showCornerCamera}
+          setShowCornerCamera={setShowCornerCamera}
         />
       ) : (
         <>
@@ -270,6 +286,9 @@ export const Camera = ({
             drawing={drawing}
             setDrawing={setDrawing}
             clearDrawing={clearDrawing}
+            mode={mode}
+            showCornerCamera={showCornerCamera}
+            setShowCornerCamera={setShowCornerCamera}
           />
           <ModeSelectionButtonTray
             mode={mode}
