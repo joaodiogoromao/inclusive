@@ -6,6 +6,8 @@ import { RecorderButtonTray } from "../ButtonTray/RecorderButtonTray";
 import { Paint } from "../Paint/Paint";
 import { ModeSelectionButtonTray } from "../ButtonTray/ModeSelectionButtonTray";
 
+import { buildRecon, wrapText } from "./speechToText";
+
 const width = 1280;
 const height = 720;
 
@@ -25,6 +27,20 @@ export const Camera = ({
   const setRecording = (val) => {
     recordingRef.current = val;
     _setRecording(val);
+  };
+
+  const [drawSpeech, _setDrawSpeech] = useState(false);
+  const drawSpeechRef = useRef(drawSpeech);
+  const setDrawSpeech = (val) => {
+    drawSpeechRef.current = val;
+    _setDrawSpeech(val);
+  };
+
+  const [transcript, _setTranscript] = useState("");
+  const transcriptRef = useRef(transcript);
+  const setTranscript = (val) => {
+    transcriptRef.current = val;
+    _setTranscript(val);
   };
 
   const [mode, _setMode] = useState(0); // possible modes: 0: camera, 1: whiteBoard, 2: screen
@@ -59,7 +75,7 @@ export const Camera = ({
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
-  const drawOnCanvas = (ctx) => {
+  const drawOnCanvas = (ctx, photo = false) => {
     if (modeRef.current === 0) {
       ctx.drawImage(cameraRef.current, 0, 0, width, height);
       ctx.drawImage(drawingRef.current, 0, 0, width, height);
@@ -78,14 +94,32 @@ export const Camera = ({
       );
       ctx.drawImage(drawingRef.current, 0, 0, width, height);
     }
+
+    if (transcriptRef.current !== "" && !photo && drawSpeechRef.current) {
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.font = "50px Arial";
+      // ctx.fillText(transcriptRef.current, width / 2, 50);
+      // ctx.strokeText(transcriptRef.current, width / 2, 50);
+
+      let wrappedText = wrapText(
+        ctx,
+        transcriptRef.current,
+        width / 2,
+        50,
+        width,
+        60
+      );
+      wrappedText.forEach(function (item) {
+        ctx.fillText(item[0], item[1], item[2]);
+        ctx.strokeText(item[0], item[1], item[2]);
+      });
+    }
   };
 
   const drawOnVideoCanvas = () => {
-    const width = 1280;
-    const height = width / (16 / 9);
-
     const ctx = videoCanvasRef.current.getContext("2d");
-    drawOnCanvas(ctx, width, height);
+    drawOnCanvas(ctx);
   };
 
   useEffect(() => {
@@ -113,6 +147,7 @@ export const Camera = ({
       };
       mediaRecorder.start(10);
       setRecording(true);
+      buildRecon(setTranscript).start();
     };
 
     getVideo();
@@ -144,7 +179,7 @@ export const Camera = ({
     photo.width = width;
     photo.height = height;
 
-    drawOnCanvas(ctx, width, height);
+    drawOnCanvas(ctx, true);
     setHasPhoto(true);
   };
 
@@ -164,7 +199,6 @@ export const Camera = ({
 
     audioStreamPromise.then((audioStream) => {
       for (const track of audioStream.getTracks()) {
-        console.log("adding audio track");
         stream.addTrack(track);
       }
 
@@ -178,6 +212,7 @@ export const Camera = ({
     let buffer = new Blob(recordedChunks);
     videoRef.current = URL.createObjectURL(buffer);
     setHasVideo(true);
+    setTranscript("");
   };
 
   const closeRecording = () => {
@@ -224,6 +259,8 @@ export const Camera = ({
           drawing={drawing}
           setDrawing={setDrawing}
           clearDrawing={clearDrawing}
+          drawSpeech={drawSpeech}
+          setDrawSpeech={setDrawSpeech}
         />
       ) : (
         <>
