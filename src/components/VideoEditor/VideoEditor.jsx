@@ -8,7 +8,7 @@ export const VideoEditor = ({ videoSrc }) => {
 
   useEffect(() => {
     const options = {
-      start: [20, 80],
+      start: [0, 80],
       connect: true,
       range: {
         min: 0,

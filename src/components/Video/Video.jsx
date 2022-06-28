@@ -15,6 +15,17 @@ export const Video = ({ videoRef, hasVideo, setHasVideo }) => {
     videoRef.current?.load();
   }, [videoRef]);
 
+  const downloadVideo = () => {
+    let url = videoRef.current;
+    let a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    a.href = url;
+    a.download = "test.webm";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <StyledVideo visible={hasVideo}>
