@@ -3,7 +3,11 @@ import React, { useRef, useEffect } from "react";
 import noUiSlider from "nouislider";
 import "nouislider/dist/nouislider.css";
 
-export const VideoEditor = ({ videoPlayerRef, recordedChunks, setEditingSlice }) => {
+export const VideoEditor = ({
+  videoPlayerRef,
+  recordedChunks,
+  setEditingSlice,
+}) => {
   const sliderRef = useRef(null);
 
   useEffect(() => {
@@ -20,15 +24,8 @@ export const VideoEditor = ({ videoPlayerRef, recordedChunks, setEditingSlice })
     if (!sliderRef.current.noUiSlider) {
       noUiSlider.create(sliderRef.current, options);
       sliderRef.current.noUiSlider.on("set", ([start, end]) => {
-
         setEditingSlice([parseInt(start), parseInt(end)]);
         videoPlayerRef.current.load();
-
-        // const editingChunks = recordedChunks.slice(startPos, endPos + 1);
-        // console.log(editingChunks);
-
-        // const buffer = new Blob(editingChunks);
-        // videoRef.current = URL.createObjectURL(buffer);
       });
     } else sliderRef.current.noUiSlider.updateOptions(options, true);
   }, []);
