@@ -17,9 +17,10 @@ export const Camera = ({
   videoRef,
   setHasPhoto,
   setHasVideo,
+  recordedChunks,
+  setRecordedChunks,
 }) => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recordedChunks, setRecordedChunks] = useState([]);
   const [drawing, setDrawing] = useState(false);
 
   const [showCornerCamera, _setShowCornerCamera] = useState(true);
@@ -158,7 +159,7 @@ export const Camera = ({
           setRecordedChunks((recorded) => [...recorded, event.data]);
         }
       };
-      mediaRecorder.start(10);
+      mediaRecorder.start(1000);
       setRecording(true);
       buildRecon(setTranscript).start();
     };
@@ -222,7 +223,7 @@ export const Camera = ({
   const stopRecording = () => {
     mediaRecorder.stop();
 
-    let buffer = new Blob(recordedChunks);
+    const buffer = new Blob(recordedChunks);
     videoRef.current = URL.createObjectURL(buffer);
     setHasVideo(true);
     setRecording(false);

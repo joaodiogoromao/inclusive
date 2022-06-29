@@ -118,3 +118,12 @@ input[type="range"]:focus::-ms-fill-lower {
 input[type="range"]:focus::-ms-fill-upper {
   background: #367ebd;
 }
+
+div.noUi-connect {
+  background-color: #faa41a !important;
+  color: #313131 !important;
+}
+
+div.noUi-connects {
+  background-color: #313131 !important;
+}

@@ -11,6 +11,7 @@ function App() {
 
   const [hasPhoto, setHasPhoto] = useState(false);
   const [hasVideo, setHasVideo] = useState(false);
+  const [recordedChunks, setRecordedChunks] = useState([]);
 
   return (
     <div className="App">
@@ -20,6 +21,8 @@ function App() {
         videoRef={videoRef}
         setHasPhoto={setHasPhoto}
         setHasVideo={setHasVideo}
+        recordedChunks={recordedChunks}
+        setRecordedChunks={setRecordedChunks}
       />
       <Photo
         photoRef={photoRef}
@@ -30,6 +33,7 @@ function App() {
         videoRef={videoRef}
         hasVideo={hasVideo}
         setHasVideo={setHasVideo}
+        recordedChunks={recordedChunks}
       />
     </div>
   );
