@@ -1,4 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
+import * as tf from "@tensorflow/tfjs-core";
+import * as bodyPix from "@tensorflow-models/body-pix";
+import "@tensorflow/tfjs-backend-cpu";
+import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 
 import { StyledCamera } from "./style";
 import { CameraButtonTray } from "../ButtonTray/CameraButtonTray";
@@ -21,6 +25,13 @@ export const Camera = ({
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
   const [drawing, setDrawing] = useState(false);
+
+  const [model, _setModel] = useState(null);
+  const modelRef = useRef(model);
+  const setModel = (val) => {
+    modelRef.current = val;
+    _setModel(val);
+  };
 
   const [showCornerCamera, _setShowCornerCamera] = useState(true);
   const showCornerCameraRef = useRef(showCornerCamera);
@@ -71,6 +82,7 @@ export const Camera = ({
   const drawingRef = useRef(null);
   const videoCanvasRef = useRef(null);
   const screenRef = useRef(null);
+  const virtualCanvasRef = useRef(null);
 
   const drawWhiteBackground = () => {
     fillRect(videoCanvasRef.current);
@@ -84,8 +96,34 @@ export const Camera = ({
 
   const drawOnCanvas = (ctx, photo = false) => {
     if (modeRef.current === 0) {
-      ctx.drawImage(cameraRef.current, 0, 0, width, height);
-      ctx.drawImage(drawingRef.current, 0, 0, width, height);
+      // ctx.drawImage(cameraRef.current, 0, 0, width, height);
+      // ctx.drawImage(drawingRef.current, 0, 0, width, height);
+      // Get current webcam frame and run segmentation
+
+      if (modelRef.current === null || !cameraRef.current) return;
+
+      modelRef.current
+        .segmentPerson(cameraRef.current, {
+          flipHorizontal: false,
+          internalResolution: "low",
+          segmentationThreshold: 0.7,
+        })
+        .then((segmentation) => {
+          const maskBackground = true;
+          const backgroundDarkeningMask = bodyPix.toMask(
+            segmentation,
+            maskBackground
+          );
+
+          const opacity = 0.7;
+          // draw the mask onto the image on a canvas.  With opacity set to 0.7 this will darken the background.
+          bodyPix.drawMask(
+            videoCanvasRef.current,
+            cameraRef.current,
+            backgroundDarkeningMask,
+            opacity
+          );
+        });
     } else if (modeRef.current === 1) {
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, width, height);
@@ -165,6 +203,23 @@ export const Camera = ({
 
     getVideo();
     if (mediaRecorder) triggerRecording();
+
+    const loadModel = async () => {
+      setWasmPaths(
+        "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/wasm-out/"
+      );
+      tf.setBackend("wasm");
+      await tf.ready();
+      const model = await bodyPix.load({
+        architecture: "MobileNetV1",
+        outputStride: 16,
+        multiplier: 0.5,
+        quantBytes: 1,
+      });
+      setModel(model);
+      console.log("loaded!");
+    };
+    loadModel();
   }, [cameraRef, mediaRecorder]);
 
   const getCameraStream = () => {
@@ -261,6 +316,12 @@ export const Camera = ({
       <canvas
         ref={videoCanvasRef}
         style={{ position: "absolute" }}
+        width={`${width}px`}
+        height={`${height}px`}
+      ></canvas>
+      <canvas
+        ref={virtualCanvasRef}
+        style={{ display: "none" }}
         width={`${width}px`}
         height={`${height}px`}
       ></canvas>
