@@ -6,6 +6,7 @@ import { DrawingButtonTray } from "./DrawingButtonTray";
 
 import { BsFillCameraFill, BsFillCameraVideoFill } from "react-icons/bs";
 import { BiShow, BiHide } from "react-icons/bi";
+import { BackgroundButtonTray } from "./BackgroundButtonTray";
 
 export const CameraButtonTray = ({
   photoAction,
@@ -16,6 +17,10 @@ export const CameraButtonTray = ({
   mode,
   showCornerCamera,
   setShowCornerCamera,
+  virtualBackground,
+  setVirtualBackground,
+  backgroundImage,
+  setBackgroundImage,
 }) => {
   return (
     <StyledButtonTray>
@@ -39,6 +44,14 @@ export const CameraButtonTray = ({
         setDrawing={setDrawing}
         clearDrawing={clearDrawing}
       ></DrawingButtonTray>
+      <BackgroundButtonTray
+        mode={mode}
+        showCornerCamera={showCornerCamera}
+        virtualBackground={virtualBackground}
+        setVirtualBackground={setVirtualBackground}
+        backgroundImage={backgroundImage}
+        setBackgroundImage={setBackgroundImage}
+      ></BackgroundButtonTray>
     </StyledButtonTray>
   );
 };

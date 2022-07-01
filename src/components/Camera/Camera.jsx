@@ -33,6 +33,20 @@ export const Camera = ({
     _setModel(val);
   };
 
+  const [virtualBackground, _setVirtualBackground] = useState(false);
+  const virtualBackgroundRef = useRef(virtualBackground);
+  const setVirtualBackground = (val) => {
+    virtualBackgroundRef.current = val;
+    _setVirtualBackground(val);
+  };
+
+  const [backgroundImage, _setBackgroundImage] = useState(false);
+  const backgroundImageRef = useRef(backgroundImage);
+  const setBackgroundImage = (val) => {
+    backgroundImageRef.current = val;
+    _setBackgroundImage(val);
+  };
+
   const [showCornerCamera, _setShowCornerCamera] = useState(true);
   const showCornerCameraRef = useRef(showCornerCamera);
   const setShowCornerCamera = (val) => {
@@ -96,10 +110,47 @@ export const Camera = ({
 
   const drawOnCanvas = (ctx, photo = false) => {
     if (modeRef.current === 0) {
-      // ctx.drawImage(cameraRef.current, 0, 0, width, height);
-      // ctx.drawImage(drawingRef.current, 0, 0, width, height);
-      // Get current webcam frame and run segmentation
+      drawCamera(
+        ctx,
+        showCornerCameraRef.current,
+        virtualBackgroundRef.current
+      );
+      ctx.drawImage(drawingRef.current, 0, 0, width, height);
+    } else if (modeRef.current === 1) {
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, width, height);
+      drawCamera(
+        ctx,
+        showCornerCameraRef.current,
+        virtualBackgroundRef.current
+      );
+      ctx.drawImage(drawingRef.current, 0, 0, width, height);
+    } else if (modeRef.current === 2) {
+      ctx.drawImage(screenRef.current, 0, 0, width, height);
+      drawCamera(
+        ctx,
+        showCornerCameraRef.current,
+        virtualBackgroundRef.current
+      );
+      ctx.drawImage(drawingRef.current, 0, 0, width, height);
+    }
 
+    if (transcriptRef.current !== "" && !photo && drawSpeechRef.current)
+      drawTranscript(ctx);
+  };
+
+  const drawCamera = (ctx, cornerCamera, virtualBackground) => {
+    const cornerCondition = () => cornerCamera && modeRef.current !== 0;
+    const scaled = (n) => n / 3.5;
+
+    const posX = cornerCondition() ? (2 / 3) * width : 0;
+    const posY = cornerCondition() ? (2 / 3) * height : 0;
+    const imageWidth = cornerCondition() ? scaled(width) : width;
+    const imageHeight = cornerCondition() ? scaled(height) : height;
+
+    if (!virtualBackground && (modeRef.current === 0 || cornerCamera))
+      ctx.drawImage(cameraRef.current, posX, posY, imageWidth, imageHeight);
+    else if (virtualBackground && (modeRef.current === 0 || cornerCamera)) {
       if (modelRef.current === null || !cameraRef.current) return;
 
       modelRef.current
@@ -115,38 +166,21 @@ export const Camera = ({
             maskBackground
           );
 
-          const opacity = 0.7;
-          // draw the mask onto the image on a canvas.  With opacity set to 0.7 this will darken the background.
-          bodyPix.drawMask(
-            videoCanvasRef.current,
-            cameraRef.current,
-            backgroundDarkeningMask,
-            opacity
-          );
+          const oldGCO = ctx.globalCompositeOperation;
+          ctx.clearRect(posX, posY, imageWidth, imageHeight);
+          // ctx.scale(scaled(1), scaled(1));
+          // ctx.putImageData(backgroundDarkeningMask, scaled(posX), scaled(posY));
+          // ctx.scale(1, 1);
+
+          createImageBitmap(backgroundDarkeningMask).then((imgBitmap) => {
+            ctx.drawImage(imgBitmap, posX, posY, imageWidth, imageHeight);
+          });
+
+          ctx.globalCompositeOperation = "source-out";
+          ctx.drawImage(cameraRef.current, posX, posY, imageWidth, imageHeight);
+          ctx.globalCompositeOperation = oldGCO;
         });
-    } else if (modeRef.current === 1) {
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(drawingRef.current, 0, 0, width, height);
-      if (showCornerCameraRef.current) drawCornerCamera(ctx);
-    } else if (modeRef.current === 2) {
-      ctx.drawImage(screenRef.current, 0, 0, width, height);
-      if (showCornerCameraRef.current) drawCornerCamera(ctx);
-      ctx.drawImage(drawingRef.current, 0, 0, width, height);
     }
-
-    if (transcriptRef.current !== "" && !photo && drawSpeechRef.current)
-      drawTranscript(ctx);
-  };
-
-  const drawCornerCamera = (ctx) => {
-    ctx.drawImage(
-      cameraRef.current,
-      (2 / 3) * width,
-      (2 / 3) * height,
-      width / 3.5,
-      height / 3.5
-    );
   };
 
   const drawTranscript = (ctx) => {
@@ -350,6 +384,10 @@ export const Camera = ({
             mode={mode}
             showCornerCamera={showCornerCamera}
             setShowCornerCamera={setShowCornerCamera}
+            virtualBackground={virtualBackground}
+            setVirtualBackground={setVirtualBackground}
+            backgroundImage={backgroundImage}
+            setBackgroundImage={setBackgroundImage}
           />
           <ModeSelectionButtonTray
             mode={mode}
