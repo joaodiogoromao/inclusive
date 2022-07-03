@@ -109,6 +109,7 @@ export const Camera = ({
   };
 
   const drawOnCanvas = (ctx, photo = false) => {
+    // camera mode
     if (modeRef.current === 0) {
       drawCamera(
         ctx,
@@ -116,7 +117,9 @@ export const Camera = ({
         virtualBackgroundRef.current
       );
       ctx.drawImage(drawingRef.current, 0, 0, width, height);
-    } else if (modeRef.current === 1) {
+    }
+    // white board mode
+    else if (modeRef.current === 1) {
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, width, height);
       drawCamera(
@@ -125,7 +128,9 @@ export const Camera = ({
         virtualBackgroundRef.current
       );
       ctx.drawImage(drawingRef.current, 0, 0, width, height);
-    } else if (modeRef.current === 2) {
+    }
+    // screen sharing mode
+    else if (modeRef.current === 2) {
       ctx.drawImage(screenRef.current, 0, 0, width, height);
       drawCamera(
         ctx,
@@ -139,7 +144,7 @@ export const Camera = ({
       drawTranscript(ctx);
   };
 
-  const drawCamera = (ctx, cornerCamera, virtualBackground) => {
+  const drawCamera = async (ctx, cornerCamera, virtualBackground) => {
     const cornerCondition = () => cornerCamera && modeRef.current !== 0;
     const scaled = (n) => n / 3.5;
 
@@ -148,8 +153,17 @@ export const Camera = ({
     const imageWidth = cornerCondition() ? scaled(width) : width;
     const imageHeight = cornerCondition() ? scaled(height) : height;
 
+    const pos = {
+      posX: posX,
+      posY: posY,
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
+    };
+
+    // draw camera image
     if (!virtualBackground && (modeRef.current === 0 || cornerCamera))
       ctx.drawImage(cameraRef.current, posX, posY, imageWidth, imageHeight);
+    // draw camera image with background
     else if (virtualBackground && (modeRef.current === 0 || cornerCamera)) {
       if (modelRef.current === null || !cameraRef.current) return;
 
@@ -157,30 +171,59 @@ export const Camera = ({
         .segmentPerson(cameraRef.current, {
           flipHorizontal: false,
           internalResolution: "low",
-          segmentationThreshold: 0.7,
+          segmentationThreshold: 0.5,
         })
         .then((segmentation) => {
-          const maskBackground = true;
-          const backgroundDarkeningMask = bodyPix.toMask(
-            segmentation,
-            maskBackground
-          );
-
-          const oldGCO = ctx.globalCompositeOperation;
-          ctx.clearRect(posX, posY, imageWidth, imageHeight);
-          // ctx.scale(scaled(1), scaled(1));
-          // ctx.putImageData(backgroundDarkeningMask, scaled(posX), scaled(posY));
-          // ctx.scale(1, 1);
-
-          createImageBitmap(backgroundDarkeningMask).then((imgBitmap) => {
-            ctx.drawImage(imgBitmap, posX, posY, imageWidth, imageHeight);
-          });
-
-          ctx.globalCompositeOperation = "source-out";
-          ctx.drawImage(cameraRef.current, posX, posY, imageWidth, imageHeight);
-          ctx.globalCompositeOperation = oldGCO;
+          if (backgroundImageRef.current)
+            drawImageBackground(ctx, segmentation, pos);
+          else drawBlurredBackground(ctx, segmentation, pos);
         });
     }
+  };
+
+  const drawImageBackground = (ctx, segmentation, pos) => {
+    const virtualCtx = virtualCanvasRef.current.getContext("2d");
+    virtualCtx.drawImage(cameraRef.current, 0, 0, width, height);
+    const imageData = virtualCtx.getImageData(0, 0, width, height);
+    for (let p = 0; p < imageData.data.length; p += 4) {
+      if (segmentation.data[p / 4] === 0) {
+        imageData.data[p + 3] = 0;
+      }
+    }
+    virtualCtx.putImageData(imageData, 0, 0);
+
+    const image = backgroundImageRef.current;
+    ctx.drawImage(image, pos.posX, pos.posY, pos.imageWidth, pos.imageHeight);
+    ctx.drawImage(
+      virtualCanvasRef.current,
+      pos.posX,
+      pos.posY,
+      pos.imageWidth,
+      pos.imageHeight
+    );
+  };
+
+  const drawBlurredBackground = (ctx, segmentation, pos) => {
+    const backgroundBlurAmount = 8;
+    const edgeBlurAmount = 5;
+    cameraRef.current.width = width;
+    cameraRef.current.height = height;
+
+    bodyPix.drawBokehEffect(
+      virtualCanvasRef.current,
+      cameraRef.current,
+      segmentation,
+      backgroundBlurAmount,
+      edgeBlurAmount
+    );
+
+    ctx.drawImage(
+      virtualCanvasRef.current,
+      pos.posX,
+      pos.posY,
+      pos.imageWidth,
+      pos.imageHeight
+    );
   };
 
   const drawTranscript = (ctx) => {
@@ -251,7 +294,6 @@ export const Camera = ({
         quantBytes: 1,
       });
       setModel(model);
-      console.log("loaded!");
     };
     loadModel();
   }, [cameraRef, mediaRecorder]);
@@ -349,7 +391,7 @@ export const Camera = ({
       <video ref={screenRef} style={{ display: "none" }}></video>
       <canvas
         ref={videoCanvasRef}
-        style={{ position: "absolute" }}
+        style={{ position: "absolute", backgroundColor: "transparent" }}
         width={`${width}px`}
         height={`${height}px`}
       ></canvas>

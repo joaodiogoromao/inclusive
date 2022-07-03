@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useRef } from "react";
 
 import { Button } from "../Button/Button";
 
 import { BiImageAlt, BiImageAdd } from "react-icons/bi";
+import { MdOutlineHideImage } from "react-icons/md";
 
 export const BackgroundButtonTray = ({
   mode,
@@ -12,7 +13,18 @@ export const BackgroundButtonTray = ({
   backgroundImage,
   setBackgroundImage,
 }) => {
-  const importImage = () => {};
+  const inputRef = useRef(null);
+
+  const click = () => {
+    inputRef.current.click();
+  };
+
+  const importImage = (event) => {
+    let img = new Image();
+    const fileUploaded = event.target.files[0];
+    img.src = URL.createObjectURL(fileUploaded);
+    setBackgroundImage(img);
+  };
 
   return (
     <>
@@ -24,10 +36,20 @@ export const BackgroundButtonTray = ({
               content={<BiImageAlt />}
               filled={true}
             ></Button>
-            <Button
-              action={() => importImage()}
-              content={<BiImageAdd />}
-            ></Button>
+            <Button action={click} content={<BiImageAdd />}></Button>
+            {backgroundImage && (
+              <Button
+                action={() => setBackgroundImage(null)}
+                content={<MdOutlineHideImage />}
+              ></Button>
+            )}
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={importImage}
+            />
           </>
         ) : (
           <Button
