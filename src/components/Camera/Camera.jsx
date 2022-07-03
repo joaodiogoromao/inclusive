@@ -356,23 +356,13 @@ export const Camera = ({
     let buffer = new Blob(recordedChunks);
     videoRef.current = URL.createObjectURL(buffer);
     setHasVideo(true);
+    setRecording(false);
     setTranscript("");
   };
 
   const closeRecording = () => {
     setRecording(false);
     setRecordedChunks([]);
-  };
-
-  const downloadVideo = () => {
-    let url = videoRef.current;
-    let a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
-    a.href = url;
-    a.download = "test.webm";
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const clearDrawing = () => {
