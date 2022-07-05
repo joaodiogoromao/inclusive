@@ -8,19 +8,31 @@
 
 It aims to be a valid solution for those who want, for example, the *zoom* functionalities without the need to start a meeting and save the captures or recordings for future analysis.
 
-`TODO` incluir link da demo do vídeo
+A demo of the development application is available [here](). 
 
 ## Functional Specification
 
 The following user stories illustrate the functionalites of the developed web application:
 
+### Core functionalities
+
 * As a user, I want to be able to take pictures with my web cam, so I can view them after.
 * As a user, I want to be able to record videos with my web cam, so I can view them after.
+
+### Audio manipulation
+
 * As a user, I want to be able to record a video with sound, so that others can not only see the recorded frames but hear the correspondent audio as well.
 * As a user, I want to be able to see my audio converted to text at the time I am speaking, so I can see in the video what I just said.
+
+### Drawing annotations
+
 * As a user, I want to be able to take notes on a white board, so I can show others my notes while they see me.
 * As a user, I want to be able to take notes within my own picture, so I can not only show the captured web cam frames, but also show some notes/drawings.
 * As a user, I want to be able to erase my own drawings and notes, so I can correct some mistakes I could possibly have done.
+* As a user, I want to be able to record the animated annotation independently of the recording mode I am in (camera, white board, screen sharing), so that I can save them to watch later.
+
+### Screen share
+
 * As a user, I want to be able to share my screen, so I can show others what I'm seeing/doing on my computer.
 * As a user, I want to be able to take notes within my screen share, so I can not only show my screen to others, but also show some notes/drawings.
 * As a user, I want to have the possibility of showing or not my web cam while annotating on the white board or sharing my screen, so that I have a more customizable environment.
