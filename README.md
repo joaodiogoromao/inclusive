@@ -8,7 +8,7 @@
 
 It aims to be a valid solution for those who want, for example, the *zoom* functionalities without the need to start a meeting and save the captures or recordings for future analysis.
 
-A demo of the development application is available [here](). 
+A demo of the development application is available [here](https://www.loom.com/share/6d34c2417fd5403397e7cbd7b551c1d1). 
 
 ## Functional Specification
 
@@ -72,6 +72,13 @@ The following prototype is accessible to the public at the following url: https:
 * [**Web speech API**](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API): for traducing the recorded audio into text in real time
 
 ## How to use
+
+### Set up
+
+To run the app, the user only has to certify he has `npm` installed and run the following commands (the first command may only be needed if the app is being run for the first time):
+
+`npm install`
+`npm start`
 
 ### Using modes
 
